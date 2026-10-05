@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSP Screener — 每日现金担保看跌期权榜单</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">◉</span>
+    <div>
+      <h1>CSP Screener</h1>
+      <p class="sub">Cash-Secured Put 每日榜单 · PutFinder-style</p>
+    </div>
+  </div>
+  <div class="meta" id="meta">加载中…</div>
+</header>
+
+<main>
+  <section class="controls">
+    <input id="search" type="text" placeholder="搜索标的，如 MU…" autocomplete="off">
+    <label class="minscore">最低分数
+      <input id="minScore" type="range" min="0" max="100" value="0" step="1">
+      <span id="minScoreVal">0</span>
+    </label>
+    <span class="count" id="count"></span>
+  </section>
+
+  <section class="tablewrap">
+    <table id="board">
+      <thead><tr id="headrow"></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </section>
+
+  <p class="footnote">
+    数据来自 Robinhood 期权链（盘后为收盘快照）。分数 = 股票分/100 × 合约适配分 × 财报门。
+    仅供研究，不构成投资建议。
+  </p>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
