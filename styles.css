@@ -102,6 +102,11 @@ tr.detail td { background: #fafbfc; text-align: left; white-space: normal; }
   display: flex; justify-content: space-between; margin-top: 12px;
   font-size: 13px; color: var(--muted);
 }
+.edge {
+  grid-column: 1 / -1; background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 12px 20px; font-size: 14px; color: var(--muted);
+}
+.edge b { font-size: 16px; }
 td.win, .win { color: var(--accent); font-weight: 600; }
 td.loss, .loss { color: #b91c1c; font-weight: 600; }
 @media (max-width: 720px) {

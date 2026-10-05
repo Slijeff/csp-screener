@@ -130,7 +130,7 @@
 (function () {
   "use strict";
   const $ = id => document.getElementById(id);
-  const SRC_NAME = { ours: "自家筛选", putfinder: "PutFinder" };
+  const SRC_NAME = { top10: "自家 Top10", pool: "全合格池" };
   const pct = v => (v == null ? "—" : v.toFixed(1) + "%");
   const money = v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2));
 
@@ -155,9 +155,15 @@
     .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(d => {
       const o = d.overall || {};
-      $("trackCards").innerHTML =
-        card(SRC_NAME.ours, o.ours || { n_picks: 0, n_settled: 0, n_wins: 0 }) +
-        card(SRC_NAME.putfinder, o.putfinder || { n_picks: 0, n_settled: 0, n_wins: 0 });
+      const t = o.top10 || { n_picks: 0, n_settled: 0, n_wins: 0 };
+      const p = o.pool || { n_picks: 0, n_settled: 0, n_wins: 0 };
+      let edge = "";
+      if (t.win_rate_pct != null && p.win_rate_pct != null) {
+        const dw = t.win_rate_pct - p.win_rate_pct;
+        edge = `<div class="edge">超额胜率（Top10 − 全池）：` +
+          `<b class="${dw >= 0 ? "win" : "loss"}">${(dw >= 0 ? "+" : "") + dw.toFixed(1)}%</b></div>`;
+      }
+      $("trackCards").innerHTML = card(SRC_NAME.top10, t) + card(SRC_NAME.pool, p) + edge;
 
       $("daybody").innerHTML = (d.by_day || []).map(x =>
         `<tr><td>${x.run_date}</td><td>${SRC_NAME[x.source] || x.source}</td>` +
