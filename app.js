@@ -125,3 +125,58 @@
     applyFilters();
   });
 })();
+
+/* 战绩页签：胜率统计 + 已结算明细（data/track_summary.json） */
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const SRC_NAME = { ours: "自家筛选", putfinder: "PutFinder" };
+  const pct = v => (v == null ? "—" : v.toFixed(1) + "%");
+  const money = v => (v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(2));
+
+  function switchTab(which) {
+    $("tabBoard").classList.toggle("active", which === "board");
+    $("tabTrack").classList.toggle("active", which === "track");
+    $("boardview").hidden = which !== "board";
+    $("trackview").hidden = which !== "track";
+  }
+  $("tabBoard").onclick = () => switchTab("board");
+  $("tabTrack").onclick = () => switchTab("track");
+
+  function card(name, s) {
+    const wr = s.win_rate_pct == null ? "—" : s.win_rate_pct.toFixed(1) + "%";
+    const ret = s.avg_ret_pct == null ? "—" : (s.avg_ret_pct >= 0 ? "+" : "") + s.avg_ret_pct.toFixed(2) + "%";
+    return `<div class="card"><h3>${name}</h3>` +
+      `<div class="big">${wr}</div><div class="cap">胜率（${s.n_wins}/${s.n_settled}）</div>` +
+      `<div class="row"><span>推荐 ${s.n_picks}</span><span>平均回报 ${ret}</span></div></div>`;
+  }
+
+  fetch("data/track_summary.json")
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(d => {
+      const o = d.overall || {};
+      $("trackCards").innerHTML =
+        card(SRC_NAME.ours, o.ours || { n_picks: 0, n_settled: 0, n_wins: 0 }) +
+        card(SRC_NAME.putfinder, o.putfinder || { n_picks: 0, n_settled: 0, n_wins: 0 });
+
+      $("daybody").innerHTML = (d.by_day || []).map(x =>
+        `<tr><td>${x.run_date}</td><td>${SRC_NAME[x.source] || x.source}</td>` +
+        `<td>${x.n_picks}</td><td>${x.n_settled}</td><td>${x.n_wins}</td>` +
+        `<td class="${x.win_rate_pct === 100 ? "win" : ""}">${pct(x.win_rate_pct)}</td>` +
+        `<td>${x.avg_ret_pct == null ? "—" : money(x.avg_ret_pct)}</td></tr>`
+      ).join("") || `<tr><td colspan="7" style="text-align:center;color:#999">暂无数据</td></tr>`;
+
+      $("setbody").innerHTML = (d.settled || []).map(s =>
+        `<tr><td class="ticker">${s.ticker}</td><td>${SRC_NAME[s.source] || s.source}</td>` +
+        `<td>${s.run_date.slice(5)}</td><td>${s.expiration.slice(5)}</td>` +
+        `<td>$${s.strike.toFixed(0)}</td><td>${s.premium.toFixed(2)}</td>` +
+        `<td>$${s.spot_eval.toFixed(2)}</td>` +
+        `<td class="${s.pnl >= 0 ? "win" : "loss"}">${money(s.pnl)}</td>` +
+        `<td class="${s.ret_pct >= 0 ? "win" : "loss"}">${money(s.ret_pct)}%</td>` +
+        `<td class="${s.win ? "win" : "loss"}">${s.win ? "胜" : "负"}</td></tr>`
+      ).join("") || `<tr><td colspan="10" style="text-align:center;color:#999">暂无已结算</td></tr>`;
+    })
+    .catch(e => {
+      $("trackCards").innerHTML = `<p style="color:#999">战绩数据加载失败：${e.message}</p>`;
+    });
+})();
